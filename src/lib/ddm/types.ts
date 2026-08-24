@@ -11,6 +11,8 @@ export type DownloadStatus =
 
 export type MediaKind = "video" | "audio" | "image" | "archive" | "document" | "file";
 
+export type StreamProtocol = "hls" | "dash";
+
 export interface DownloadVariant {
   id: string;
   label: string; // e.g. "1080p"
@@ -18,6 +20,13 @@ export interface DownloadVariant {
   size?: number | undefined; // bytes, may be unknown
   url: string;
   note?: string | undefined;
+  /** Set when the variant comes from an HLS/DASH manifest. */
+  protocol?: StreamProtocol | undefined;
+  /** DASH representation id inside the MPD. */
+  repId?: string | undefined;
+  resolution?: string | undefined;
+  bandwidth?: number | undefined; // bits/s from the manifest
+  durationSec?: number | undefined;
 }
 
 export interface DownloadItem {
@@ -37,6 +46,13 @@ export interface DownloadItem {
   error?: string | undefined;
   resumable: boolean;
   segments: number;
+  /** Streaming downloads (HLS/DASH manifest source). */
+  protocol?: StreamProtocol | undefined;
+  repId?: string | undefined;
+  segmentsTotal?: number | undefined;
+  segmentsDone?: number | undefined;
+  /** SHA-256 (hex) of the finished file, when integrity verification is on. */
+  checksum?: string | undefined;
 }
 
 export interface Settings {
@@ -46,6 +62,7 @@ export interface Settings {
   maxConcurrent: number;
   autoStart: boolean;
   autoPauseOnLowBattery: boolean;
+  verifyIntegrity: boolean;
   backgroundServiceAndroid: boolean;
   floatingBubbleAndroid: boolean;
   interceptBrowserDownloads: boolean;

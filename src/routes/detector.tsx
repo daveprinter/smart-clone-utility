@@ -47,8 +47,18 @@ export const Route = createFileRoute("/detector")({
 
 const DEMO_MEDIA = "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4";
 
-const DEMO_LINKS = [
+const DEMO_LINKS: Array<{ url: string; label: string; tag?: string }> = [
   { url: DEMO_MEDIA, label: "flower.mp4 — sample video" },
+  {
+    url: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+    label: "Big Buck Bunny — adaptive stream",
+    tag: "HLS",
+  },
+  {
+    url: "https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd",
+    label: "Big Buck Bunny — adaptive stream",
+    tag: "DASH",
+  },
   {
     url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
     label: "dummy.pdf — sample document",
@@ -94,9 +104,10 @@ function DetectorPage() {
     <AppShell>
       <h1 className="text-2xl font-semibold tracking-tight">Detector</h1>
       <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-        DDM watches the web for anything downloadable. Press the catch button on a page and a
-        download badge pops up over videos and files — before the browser's own download manager
-        ever sees them.
+        DDM watches the web for anything downloadable — direct files plus HLS and DASH streaming
+        manifests, which it parses for the real quality ladder. Press the catch button on a page
+        and a download badge pops up over videos and files before the browser's own manager sees
+        them.
       </p>
 
       <div className="mt-6 grid gap-5 lg:grid-cols-2">
@@ -206,6 +217,11 @@ function DetectorPage() {
                     >
                       <FileDown className="h-4 w-4 shrink-0 text-primary" />
                       <span className="flex-1 truncate">{l.label}</span>
+                      {l.tag && (
+                        <Badge variant="secondary" className="font-mono text-[10px] uppercase">
+                          {l.tag}
+                        </Badge>
+                      )}
                       <Badge variant="outline" className="font-mono text-[10px] uppercase">
                         {kind}
                       </Badge>

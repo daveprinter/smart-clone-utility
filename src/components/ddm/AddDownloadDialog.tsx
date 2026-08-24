@@ -53,8 +53,8 @@ export function AddDownloadDialog({
       setVariantId(result.variants[0]?.id ?? "");
       setName(result.name);
       setPath(settings.defaultSavePath);
-    } catch {
-      toast.error("Could not analyse that link");
+    } catch (err) {
+      toast.error(err instanceof Error && err.message ? err.message : "Could not analyse that link");
     } finally {
       setLoading(false);
     }

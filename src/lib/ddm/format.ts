@@ -31,6 +31,7 @@ const EXT_KIND: Record<string, MediaKind> = {
   mkv: "video",
   ts: "video",
   m3u8: "video",
+  mpd: "video",
   mov: "video",
   avi: "video",
   mp3: "audio",

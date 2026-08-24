@@ -10,6 +10,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { DownloadEngine, saveBlob } from "./engine";
+import { kindFromUrl } from "./format";
 import type {
   DeviceMode,
   DownloadItem,
@@ -30,6 +31,7 @@ export const defaultSettings: Settings = {
   maxConcurrent: 4,
   autoStart: true,
   autoPauseOnLowBattery: true,
+  verifyIntegrity: true,
   backgroundServiceAndroid: true,
   floatingBubbleAndroid: true,
   interceptBrowserDownloads: true,
@@ -117,17 +119,23 @@ export function DdmProvider({ children }: { children: ReactNode }) {
     engineRef.current = new DownloadEngine({
       onProgress: (id, received, size, speed) =>
         patchItem(id, { received, size: size || 0, speed, status: "downloading" }),
-      onDone: (id, blob) => {
+      onDone: (id, blob, meta) => {
         const item = itemsRef.current.find((i) => i.id === id);
         patchItem(id, {
           status: "completed",
           speed: 0,
           received: item?.size || item?.received || 0,
           finishedAt: Date.now(),
+          checksum: meta?.checksum,
+          error: undefined,
         });
         if (blob && item) saveBlob(blob, item.name);
         if (settingsRef.current.notifyOnComplete && item) {
-          toast.success("Download complete", { description: item.name });
+          toast.success("Download complete", {
+            description: meta?.checksum
+              ? `${item.name} — integrity verified (SHA-256)`
+              : item.name,
+          });
         }
       },
       onError: (id, message, resumable) =>
@@ -136,6 +144,8 @@ export function DdmProvider({ children }: { children: ReactNode }) {
           error: message,
           speed: 0,
         }),
+      onParts: (id, done, total) =>
+        patchItem(id, { segmentsDone: done, segmentsTotal: total }),
     });
   }
 
@@ -148,9 +158,17 @@ export function DdmProvider({ children }: { children: ReactNode }) {
     const s = read<Settings>(SETTINGS_KEY, defaultSettings);
     setSettings(s);
     setItems(
-      readList<DownloadItem>(ITEMS_KEY).map((i) =>
-        i.status === "downloading" ? { ...i, status: "paused", speed: 0 } : i,
-      ),
+      readList<DownloadItem>(ITEMS_KEY).map((i) => {
+        if (i.status === "completed" || i.status === "failed") return i;
+        // Buffered bytes live in memory only, so after a reload every
+        // unfinished transfer restarts from its last durable checkpoint.
+        return {
+          ...i,
+          status: i.status === "downloading" ? "paused" : i.status,
+          speed: 0,
+          segmentsDone: 0,
+        };
+      }),
     );
     setSpeedTests(readList<SpeedTestResult>(SPEED_KEY));
     setReady(true);
@@ -195,6 +213,10 @@ export function DdmProvider({ children }: { children: ReactNode }) {
     engineRef.current?.setSpeedLimit(settings.maxSpeedKbps);
   }, [settings.maxSpeedKbps]);
 
+  useEffect(() => {
+    engineRef.current?.setVerifyIntegrity(settings.verifyIntegrity);
+  }, [settings.verifyIntegrity]);
+
   const startEngine = useCallback(
     (id: string) => {
       const item = itemsRef.current.find((i) => i.id === id);
@@ -234,7 +256,7 @@ export function DdmProvider({ children }: { children: ReactNode }) {
         id: `dl_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
         name,
         url: variant.url || url,
-        kind: "file",
+        kind: variant.protocol ? "video" : kindFromUrl(variant.url || url),
         container: variant.container,
         quality: variant.label,
         size: variant.size ?? 0,
@@ -245,6 +267,8 @@ export function DdmProvider({ children }: { children: ReactNode }) {
         createdAt: Date.now(),
         resumable,
         segments: settingsRef.current.segmentsPerDownload,
+        protocol: variant.protocol,
+        repId: variant.repId,
       };
       setItems((prev) => [item, ...prev]);
       return item;

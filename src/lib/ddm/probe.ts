@@ -1,5 +1,6 @@
 import type { DownloadVariant, MediaKind } from "./types";
 import { fileNameFromUrl, guessExt, kindFromUrl } from "./format";
+import { isManifestUrl, probeStream } from "./manifest";
 
 export interface ProbeResult {
   name: string;
@@ -10,8 +11,9 @@ export interface ProbeResult {
 
 /**
  * Inspects a link the way a download manager does: HEAD request for size,
- * Accept-Ranges for resume support, then derives the alternative media
- * containers/qualities the source exposes.
+ * Accept-Ranges for resume support — and for HLS/DASH manifests it parses
+ * the manifest itself to list the real quality ladder (resolutions, bitrates,
+ * segment counts) instead of a guessed one.
  */
 export async function probeLink(url: string): Promise<ProbeResult> {
   const kind = kindFromUrl(url);
@@ -19,14 +21,25 @@ export async function probeLink(url: string): Promise<ProbeResult> {
   const name = fileNameFromUrl(url);
   let size = 0;
   let resumable = false;
+  let contentType = "";
 
   try {
     const res = await fetch(url, { method: "HEAD", mode: "cors", credentials: "omit" });
     const len = res.headers.get("content-length");
     if (len) size = Number(len);
     resumable = (res.headers.get("accept-ranges") ?? "").includes("bytes");
+    contentType = res.headers.get("content-type") ?? "";
   } catch {
     resumable = true; // assume Range support; verified on first resume attempt
+  }
+
+  // HLS / DASH manifest — parse it for real variants. Throws a descriptive
+  // error for encrypted/DRM streams so the user sees why it can't be saved.
+  if (isManifestUrl(url) || /mpegurl|dash\+xml/i.test(contentType)) {
+    const stream = await probeStream(url);
+    if (stream) {
+      return { name, kind: "video", variants: stream.variants, resumable: stream.resumable };
+    }
   }
 
   if (kind === "video") {

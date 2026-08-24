@@ -10,33 +10,80 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DetectorRouteImport } from './routes/detector'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as SpeedTestRouteImport } from './routes/speed-test'
+import { Route as ApiPublicSpeedtestRouteImport } from './routes/api/public/speedtest'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DetectorRoute = DetectorRouteImport.update({
+  id: '/detector',
+  path: '/detector',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SpeedTestRoute = SpeedTestRouteImport.update({
+  id: '/speed-test',
+  path: '/speed-test',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicSpeedtestRoute = ApiPublicSpeedtestRouteImport.update({
+  id: '/api/public/speedtest',
+  path: '/api/public/speedtest',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/detector': typeof DetectorRoute
+  '/settings': typeof SettingsRoute
+  '/speed-test': typeof SpeedTestRoute
+  '/api/public/speedtest': typeof ApiPublicSpeedtestRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/detector': typeof DetectorRoute
+  '/settings': typeof SettingsRoute
+  '/speed-test': typeof SpeedTestRoute
+  '/api/public/speedtest': typeof ApiPublicSpeedtestRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/detector': typeof DetectorRoute
+  '/settings': typeof SettingsRoute
+  '/speed-test': typeof SpeedTestRoute
+  '/api/public/speedtest': typeof ApiPublicSpeedtestRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    '/' | '/detector' | '/settings' | '/speed-test' | '/api/public/speedtest'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/detector' | '/settings' | '/speed-test' | '/api/public/speedtest'
+  id:
+    | '__root__'
+    | '/'
+    | '/detector'
+    | '/settings'
+    | '/speed-test'
+    | '/api/public/speedtest'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DetectorRoute: typeof DetectorRoute
+  SettingsRoute: typeof SettingsRoute
+  SpeedTestRoute: typeof SpeedTestRoute
+  ApiPublicSpeedtestRoute: typeof ApiPublicSpeedtestRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +95,43 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/detector': {
+      id: '/detector'
+      path: '/detector'
+      fullPath: '/detector'
+      preLoaderRoute: typeof DetectorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/speed-test': {
+      id: '/speed-test'
+      path: '/speed-test'
+      fullPath: '/speed-test'
+      preLoaderRoute: typeof SpeedTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/speedtest': {
+      id: '/api/public/speedtest'
+      path: '/api/public/speedtest'
+      fullPath: '/api/public/speedtest'
+      preLoaderRoute: typeof ApiPublicSpeedtestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DetectorRoute: DetectorRoute,
+  SettingsRoute: SettingsRoute,
+  SpeedTestRoute: SpeedTestRoute,
+  ApiPublicSpeedtestRoute: ApiPublicSpeedtestRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

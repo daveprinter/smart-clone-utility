@@ -147,7 +147,7 @@ export function AddDownloadDialog({
                     className="pl-9 font-mono text-xs"
                   />
                 </div>
-                <Button onClick={analyse} disabled={loading || !url.trim()}>
+                <Button onClick={() => void analyse()} disabled={loading || !url.trim()}>
                   {loading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (

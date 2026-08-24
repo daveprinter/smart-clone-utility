@@ -10,6 +10,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { DownloadEngine, saveBlob } from "./engine";
+import { kindFromUrl } from "./format";
 import type {
   DeviceMode,
   DownloadItem,
@@ -157,9 +158,17 @@ export function DdmProvider({ children }: { children: ReactNode }) {
     const s = read<Settings>(SETTINGS_KEY, defaultSettings);
     setSettings(s);
     setItems(
-      readList<DownloadItem>(ITEMS_KEY).map((i) =>
-        i.status === "downloading" ? { ...i, status: "paused", speed: 0 } : i,
-      ),
+      readList<DownloadItem>(ITEMS_KEY).map((i) => {
+        if (i.status === "completed" || i.status === "failed") return i;
+        // Buffered bytes live in memory only, so after a reload every
+        // unfinished transfer restarts from its last durable checkpoint.
+        return {
+          ...i,
+          status: i.status === "downloading" ? "paused" : i.status,
+          speed: 0,
+          segmentsDone: 0,
+        };
+      }),
     );
     setSpeedTests(readList<SpeedTestResult>(SPEED_KEY));
     setReady(true);
@@ -204,6 +213,10 @@ export function DdmProvider({ children }: { children: ReactNode }) {
     engineRef.current?.setSpeedLimit(settings.maxSpeedKbps);
   }, [settings.maxSpeedKbps]);
 
+  useEffect(() => {
+    engineRef.current?.setVerifyIntegrity(settings.verifyIntegrity);
+  }, [settings.verifyIntegrity]);
+
   const startEngine = useCallback(
     (id: string) => {
       const item = itemsRef.current.find((i) => i.id === id);
@@ -243,7 +256,7 @@ export function DdmProvider({ children }: { children: ReactNode }) {
         id: `dl_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
         name,
         url: variant.url || url,
-        kind: "file",
+        kind: variant.protocol ? "video" : kindFromUrl(variant.url || url),
         container: variant.container,
         quality: variant.label,
         size: variant.size ?? 0,
@@ -254,6 +267,8 @@ export function DdmProvider({ children }: { children: ReactNode }) {
         createdAt: Date.now(),
         resumable,
         segments: settingsRef.current.segmentsPerDownload,
+        protocol: variant.protocol,
+        repId: variant.repId,
       };
       setItems((prev) => [item, ...prev]);
       return item;

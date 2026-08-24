@@ -71,8 +71,7 @@ export function buildBookmarklet(origin: string): string {
   document.addEventListener('click', onClick, true);
   var panel = document.createElement('div');
   panel.id = 'ddm-catcher';
-  panel.style.cssText = 'position:fixed;top:16px;right:16px;z-index:2147483647;width:320px;max-height:70vh;overflow:auto;background:#15110b;color:#f5efe4;border:1px solid #3d3category;border-radius:12px;box-shadow:0 18px 50px rgba(0,0,0,.5);font:13px/1.45 system-ui,sans-serif;padding:12px;';
-  panel.style.border = '1px solid #4a3b22';
+  panel.style.cssText = 'position:fixed;top:16px;right:16px;z-index:2147483647;width:320px;max-height:70vh;overflow:auto;background:#15110b;color:#f5efe4;border:1px solid #4a3b22;border-radius:12px;box-shadow:0 18px 50px rgba(0,0,0,.5);font:13px/1.45 system-ui,sans-serif;padding:12px;';
   var head = document.createElement('div');
   head.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:8px;';
   head.innerHTML = '<b style=\\'flex:1;font-size:14px;\\'>DDM Catch</b>';

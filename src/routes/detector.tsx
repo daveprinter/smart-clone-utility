@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   Bookmark,
@@ -69,7 +69,15 @@ function DetectorPage() {
     setOrigin(window.location.origin);
   }, []);
 
-  const bookmarklet = origin ? buildBookmarklet(origin) : "#";
+  const bookmarklet = origin ? buildBookmarklet(origin) : "";
+
+  // React blocks javascript: hrefs — set the bookmarklet URL imperatively.
+  const bmRef = useCallback(
+    (el: HTMLAnchorElement | null) => {
+      if (el && bookmarklet) el.setAttribute("href", bookmarklet);
+    },
+    [bookmarklet],
+  );
 
   const copyBookmarklet = async () => {
     try {
@@ -104,7 +112,8 @@ function DetectorPage() {
           <CardContent className="space-y-4">
             <div className="rounded-lg border border-dashed border-primary/50 bg-primary/5 p-4 text-center">
               <a
-                href={bookmarklet}
+                ref={bmRef}
+                href="#install-ddm-catch"
                 onClick={(e) => e.preventDefault()}
                 className="inline-flex cursor-move items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-glow"
                 title="Drag me to your bookmarks bar"

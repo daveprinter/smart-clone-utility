@@ -7,6 +7,7 @@ import {
   Pause,
   Play,
   RefreshCw,
+  ShieldCheck,
   Trash2,
   Video,
 } from "lucide-react";
@@ -51,12 +52,26 @@ export function DownloadRow({ item }: { item: DownloadItem }) {
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <p className="min-w-0 flex-1 truncate text-sm font-medium">{item.name}</p>
+            {item.protocol && (
+              <Badge variant="outline" className="font-mono text-[10px] uppercase">
+                {item.protocol}
+              </Badge>
+            )}
             <Badge variant="outline" className="font-mono text-[10px] uppercase">
               {item.container}
             </Badge>
             {item.quality && (
               <Badge variant="secondary" className="text-[10px]">
                 {item.quality}
+              </Badge>
+            )}
+            {item.status === "completed" && item.checksum && (
+              <Badge
+                variant="outline"
+                className="gap-1 border-success/40 text-[10px] text-success"
+                title={`SHA-256 ${item.checksum}`}
+              >
+                <ShieldCheck className="h-3 w-3" /> verified
               </Badge>
             )}
           </div>
@@ -73,6 +88,11 @@ export function DownloadRow({ item }: { item: DownloadItem }) {
             <span>
               {formatBytes(item.received)} / {formatBytes(item.size)} ({pct.toFixed(1)}%)
             </span>
+            {item.segmentsTotal ? (
+              <span>
+                {Math.min(item.segmentsDone ?? 0, item.segmentsTotal)}/{item.segmentsTotal} parts
+              </span>
+            ) : null}
             {item.status === "downloading" && (
               <>
                 <span>{formatSpeed(item.speed)}</span>

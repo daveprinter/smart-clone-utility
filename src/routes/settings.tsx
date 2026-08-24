@@ -283,6 +283,12 @@ function SettingsPage() {
                 onChange={(v) => updateSettings({ autoPauseOnLowBattery: v })}
               />
               <ToggleRow
+                label="Verify integrity"
+                hint="Byte-count and SHA-256 checks on finish and resume — a mismatched partial is restarted, never kept"
+                checked={settings.verifyIntegrity}
+                onChange={(v) => updateSettings({ verifyIntegrity: v })}
+              />
+              <ToggleRow
                 label="Notify on completion"
                 checked={settings.notifyOnComplete}
                 onChange={(v) => updateSettings({ notifyOnComplete: v })}

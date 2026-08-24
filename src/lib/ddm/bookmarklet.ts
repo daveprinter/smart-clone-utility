@@ -20,7 +20,7 @@ export function buildBookmarklet(origin: string): string {
   var OLD = document.getElementById('ddm-catcher');
   if (OLD) { OLD.remove(); return; }
   var ORIGIN = ${JSON.stringify(origin)};
-  var EXT = /\\.(mp4|webm|mkv|mov|avi|ts|m3u8|mp3|m4a|aac|wav|flac|ogg|zip|rar|7z|tar|gz|iso|apk|exe|pdf|docx?|xlsx|pptx)([?#].*)?$/i;
+  var EXT = /\\.(mp4|webm|mkv|mov|avi|ts|m3u8|mpd|mp3|m4a|aac|wav|flac|ogg|zip|rar|7z|tar|gz|iso|apk|exe|pdf|docx?|xlsx|pptx)([?#].*)?$/i;
   var seen = {};
   var items = [];
   function push(url, kind, label) {
@@ -48,7 +48,7 @@ export function buildBookmarklet(origin: string): string {
         var m = href.match(EXT);
         if (m || a.hasAttribute('download')) {
           var ext = m ? m[1].toLowerCase() : 'file';
-          var kind = /^(mp4|webm|mkv|mov|avi|ts|m3u8)$/.test(ext) ? 'video'
+          var kind = /^(mp4|webm|mkv|mov|avi|ts|m3u8|mpd)$/.test(ext) ? 'video'
             : /^(mp3|m4a|aac|wav|flac|ogg)$/.test(ext) ? 'audio' : 'file';
           push(a.href, kind, (a.textContent || '').trim().slice(0, 60) || ext.toUpperCase() + ' file');
         }

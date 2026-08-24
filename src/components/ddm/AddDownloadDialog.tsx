@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FolderOpen, Link2, Loader2, Search } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -43,11 +43,12 @@ export function AddDownloadDialog({
     setName("");
   };
 
-  const analyse = async () => {
-    if (!url.trim()) return;
+  const analyse = async (target?: string) => {
+    const link = (target ?? url).trim();
+    if (!link) return;
     setLoading(true);
     try {
-      const result = await probeLink(url.trim());
+      const result = await probeLink(link);
       setProbe(result);
       setVariantId(result.variants[0]?.id ?? "");
       setName(result.name);
@@ -58,6 +59,19 @@ export function AddDownloadDialog({
       setLoading(false);
     }
   };
+
+  // Sync when opened with a caught link (bookmarklet, clipboard, bubble,
+  // intercepted click): prefill the URL and analyse it immediately.
+  useEffect(() => {
+    if (!open) return;
+    setUrl(initialUrl);
+    setProbe(null);
+    setVariantId("");
+    setName("");
+    setPath(settings.defaultSavePath);
+    if (initialUrl.trim()) void analyse(initialUrl.trim());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, initialUrl]);
 
   const pickFolder = async () => {
     const picker = (window as unknown as { showDirectoryPicker?: () => Promise<{ name: string }> })
@@ -133,7 +147,7 @@ export function AddDownloadDialog({
                     className="pl-9 font-mono text-xs"
                   />
                 </div>
-                <Button onClick={analyse} disabled={loading || !url.trim()}>
+                <Button onClick={() => void analyse()} disabled={loading || !url.trim()}>
                   {loading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (

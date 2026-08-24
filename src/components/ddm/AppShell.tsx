@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Onboarding } from "./Onboarding";
 import { FloatingBubble } from "./FloatingBubble";
+import { GlobalCatcher } from "./GlobalCatcher";
 
 const NAV = [
   { to: "/", label: "Downloads", icon: Download },
@@ -106,6 +107,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <Onboarding />
       <FloatingBubble />
+      <GlobalCatcher />
     </div>
   );
 }

@@ -216,7 +216,16 @@ export function DdmProvider({ children }: { children: ReactNode }) {
   }, [items, settings.maxConcurrent, ready, startEngine]);
 
   const updateSettings = useCallback((patch: Partial<Settings>) => {
-    setSettings((prev) => ({ ...prev, ...patch }));
+    setSettings((prev) => {
+      const next = { ...prev, ...patch };
+      // Persist synchronously so a fast reload/navigation never loses a change.
+      try {
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(next));
+      } catch {
+        /* storage unavailable */
+      }
+      return next;
+    });
   }, []);
 
   const addDownload: Ctx["addDownload"] = useCallback(

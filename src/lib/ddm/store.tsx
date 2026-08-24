@@ -118,17 +118,23 @@ export function DdmProvider({ children }: { children: ReactNode }) {
     engineRef.current = new DownloadEngine({
       onProgress: (id, received, size, speed) =>
         patchItem(id, { received, size: size || 0, speed, status: "downloading" }),
-      onDone: (id, blob) => {
+      onDone: (id, blob, meta) => {
         const item = itemsRef.current.find((i) => i.id === id);
         patchItem(id, {
           status: "completed",
           speed: 0,
           received: item?.size || item?.received || 0,
           finishedAt: Date.now(),
+          checksum: meta?.checksum,
+          error: undefined,
         });
         if (blob && item) saveBlob(blob, item.name);
         if (settingsRef.current.notifyOnComplete && item) {
-          toast.success("Download complete", { description: item.name });
+          toast.success("Download complete", {
+            description: meta?.checksum
+              ? `${item.name} — integrity verified (SHA-256)`
+              : item.name,
+          });
         }
       },
       onError: (id, message, resumable) =>
@@ -137,6 +143,8 @@ export function DdmProvider({ children }: { children: ReactNode }) {
           error: message,
           speed: 0,
         }),
+      onParts: (id, done, total) =>
+        patchItem(id, { segmentsDone: done, segmentsTotal: total }),
     });
   }
 

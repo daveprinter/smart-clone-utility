@@ -106,8 +106,8 @@ export function parseHls(baseUrl: string, text: string): HlsDoc {
       const line = lines[i]!;
       if (line.startsWith("#EXT-X-MEDIA:")) {
         const a = parseAttrs(line.slice("#EXT-X-MEDIA:".length));
-        if (a.TYPE === "AUDIO" && a.URI) {
-          audio.push({ url: abs(a.URI, baseUrl), name: a.NAME ?? "Audio" });
+        if (a["TYPE"] === "AUDIO" && a["URI"]) {
+          audio.push({ url: abs(a["URI"], baseUrl), name: a["NAME"] ?? "Audio" });
         }
       } else if (line.startsWith("#EXT-X-STREAM-INF:")) {
         const a = parseAttrs(line.slice("#EXT-X-STREAM-INF:".length));
@@ -119,14 +119,14 @@ export function parseHls(baseUrl: string, text: string): HlsDoc {
           }
         }
         if (!uri) continue;
-        const [w, h] = (a.RESOLUTION ?? "").split("x").map(Number);
+        const [w, h] = (a["RESOLUTION"] ?? "").split("x").map(Number);
         variants.push({
           url: abs(uri, baseUrl),
-          bandwidth: Number(a.BANDWIDTH) || 0,
+          bandwidth: Number(a["BANDWIDTH"]) || 0,
           avgBandwidth: Number(a["AVERAGE-BANDWIDTH"]) || 0,
           width: w || undefined,
           height: h || undefined,
-          audioGroup: a.AUDIO,
+          audioGroup: a["AUDIO"],
         });
       }
     }
@@ -146,14 +146,14 @@ export function parseHls(baseUrl: string, text: string): HlsDoc {
   for (const line of lines) {
     if (line.startsWith("#EXT-X-KEY:")) {
       const a = parseAttrs(line.slice("#EXT-X-KEY:".length));
-      if (a.METHOD && a.METHOD !== "NONE") encrypted = true;
+      if (a["METHOD"] && a["METHOD"] !== "NONE") encrypted = true;
     } else if (line.startsWith("#EXT-X-MAP:")) {
       const a = parseAttrs(line.slice("#EXT-X-MAP:".length));
-      if (a.URI) {
+      if (a["URI"]) {
         fmp4 = true;
-        init = { url: abs(a.URI, baseUrl) };
-        if (a.BYTERANGE) {
-          const [len, off] = a.BYTERANGE.split("@").map(Number);
+        init = { url: abs(a["URI"], baseUrl) };
+        if (a["BYTERANGE"]) {
+          const [len, off] = a["BYTERANGE"].split("@").map(Number);
           if (len) init.range = `${off || 0}-${(off || 0) + len - 1}`;
         }
       }

@@ -141,7 +141,7 @@ export class DownloadEngine {
 
   /* ------------------------- direct files ------------------------- */
 
-  private async startFile(task: Task, item: DownloadItem) {
+  private async startFile(task: Task, item: DownloadItem): Promise<void> {
     const resuming = task.received > 0 && task.chunks.length > 0;
     const headers: Record<string, string> = {};
     if (resuming) {
@@ -275,7 +275,7 @@ export class DownloadEngine {
   }
 
   /** Downloads one segment (or a byte range within one), appending to chunks. */
-  private async fetchPiece(task: Task, url: string, range?: string, resume = false) {
+  private async fetchPiece(task: Task, url: string, range?: string, resume = false): Promise<void> {
     if (!resume) {
       task.segChunkStart = task.chunks.length;
       task.segStartReceived = task.received;
@@ -329,7 +329,9 @@ export class DownloadEngine {
       const { done, value } = await reader.read();
       if (done) break;
       if (!value) continue;
-      task.chunks.push(value);
+      // Stream chunks are Uint8Array<ArrayBufferLike>; Blob accepts them at
+      // runtime, so narrow the type for the BlobPart[] array.
+      task.chunks.push(value as Uint8Array<ArrayBuffer>);
       task.received += value.byteLength;
       windowBytes += value.byteLength;
 

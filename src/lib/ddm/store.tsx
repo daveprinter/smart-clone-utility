@@ -30,6 +30,7 @@ export const defaultSettings: Settings = {
   maxConcurrent: 4,
   autoStart: true,
   autoPauseOnLowBattery: true,
+  verifyIntegrity: true,
   backgroundServiceAndroid: true,
   floatingBubbleAndroid: true,
   interceptBrowserDownloads: true,
